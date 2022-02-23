@@ -1,28 +1,21 @@
 /*
- Chat  Server
-
- A simple server that distributes any incoming messages to all
- connected clients.  To use, telnet to your device's IP address and type.
- You can see the client's input in the serial monitor as well.
-
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
-
-
- Circuit:
- * Board with NINA module (Arduino MKR WiFi 1010, MKR VIDOR 4000 and UNO WiFi Rev.2)
-
- created 18 Dec 2009
- by David A. Mellis
- modified 31 May 2012
- by Tom Igoe
-
- */
+Remote motor control, based on David Mellis and Tom Igoe's example.
+*/
 
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <Adafruit_MotorShield.h>
 
+
+//WIFI SETUP
+char ssid[] = "TheBigBlockCarriers"; // your network SSID (name)
+char pass[] = "IDPL209BBC";          // your network password (use for WPA, or use as key for WEP)
+
+int status = WL_IDLE_STATUS;
+WiFiServer server(23);
+boolean alreadyConnected = false; // whether or not the client was connected previously
+
+// MOTOR SETUP
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
@@ -31,21 +24,9 @@ Adafruit_DCMotor *M1 = AFMS.getMotor(1);
 Adafruit_DCMotor *M2 = AFMS.getMotor(2);
 Adafruit_DCMotor *M3 = AFMS.getMotor(3);
 Adafruit_DCMotor *M4 = AFMS.getMotor(4);
-
 Adafruit_DCMotor Motors[] = {*M1, *M2, *M3, *M4};
 
 int step = 500; // Milliseconds between inputs
-
-char ssid[] = "OP7P";        // your network SSID (name)
-char pass[] = "BigBlockCarriers";    // your network password (use for WPA, or use as key for WEP)
-
-int keyIndex = 0;            // your network key index number (needed only for WEP)
-
-int status = WL_IDLE_STATUS;
-
-WiFiServer server(23);
-
-boolean alreadyConnected = false; // whether or not the client was connected previously
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -65,11 +46,6 @@ void setup() {
     Serial.println("Communication with WiFi module failed!");
     // don't continue
     while (true);
-  }
-
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
   }
 
   // attempt to connect to WiFi network:
@@ -94,14 +70,13 @@ void loop() {
   // wait for a new client:
   WiFiClient client = server.available();
 
-
   // when the client sends the first byte, say hello:
   if (client) {
     if (!alreadyConnected) {
       // clear out the input buffer:
       client.flush();
-      Serial.println("We have a new client");
-      client.println("Hello, client!");
+      Serial.println("*** WIRELESS LOGGING CONNECTED ***");
+      client.println("*** GO BIG BLOCK CARRIERS ***");
       alreadyConnected = true;
     }
 
@@ -111,7 +86,7 @@ void loop() {
       // echo the bytes back to the client:
       //server.write(thisChar);
       // echo the bytes to the server as well:
-      Serial.println(thisChar);
+      Serial.println((String)"Received: "+thisChar);
 
       if (thisChar == 'W') {
           // GO FORWARD
@@ -177,12 +152,6 @@ void printWifiStatus() {
 
   // print your board's IP address:
   IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
+  Serial.print("IP Adress: ");
   Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
 }
