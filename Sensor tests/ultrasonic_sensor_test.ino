@@ -1,7 +1,8 @@
 /* 
-    Pulse generation of 10 microseconds
-    60 ms between pulses 
+    Troubleshooting for ultrasonic ranging sensor.
 */
+
+#include <Arduino.h>
 
 const int echoPin = 8; // set input pin
 const int triggerPin = 7; // set output pin
@@ -12,55 +13,42 @@ int val;
 int dist;
 int distance;
 
+int pulseSpacing = 60; // Time between pulses, milliseconds
+int pulseLen = 15; // Pulse duration, microseconds 
+
 void setup() {
+    // Start serial for output, pin setup
     Serial.begin(9600);
-
-    pinMode(trigger, OUTPUT);
-    pinMode(echo, INPUT);
-
+    pinMode(triggerPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+    Serial.println("Pulse duration is");
+    Serial.println(duration);
 }
 
 void loop() {
-
-    Serial.println("Alive");
-    pulsegeneration();
+    // Continuously report distance
+    Serial.println("Alive"); // Check program hasn't hung
+    pulseGeneration();
     duration = pulseIn(echoPin, HIGH);
     distance = distancecalculation();
-    Serial.println("Pulse duration is");
-    Serial.println(duration);
-    Serial.println("Distance in cm is");
+    Serial.print("Distance in cm is");
     Serial.println(distance);
-
 }
 
-void pulsegeneration() {    
-  
-    Serial.println("Sending pulse");
-    delay(60);
+void pulseGeneration() {    
+    //Serial.println("Sending pulse");
+    delay(pulseSpacing);
     digitalWrite(triggerPin, LOW);
     digitalWrite(triggerPin, HIGH);
     //Serial.println("pulse high");
     //Serial.println(digitalRead(trigger));
-    delayMicroseconds(15);
+    delayMicroseconds(pulseLen);
     digitalWrite(triggerPin, LOW);
     //Serial.println("pulse low");
     //Serial.println(digitalRead(trigger));
-
-}
-
-void pintesting() {
-  
-    digitalWrite(echoPin, HIGH);
-    val = digitalRead(echoPin);
-    Serial.println(val);
-    delay(1000);
-
 }
 
 void distancecalculation() {
-    
-    // returns distance in cm
-    
-    dist = duration / 58
-
+    // Convert received duration to distance, cm
+    dist = duration / 58;
 }

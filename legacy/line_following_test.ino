@@ -1,5 +1,5 @@
 /* 
-    Line reocvery test, using two sensors.
+    Line following test, using two sensors.
     Includes WiFi debugging.
 */
 
@@ -30,9 +30,6 @@ Adafruit_DCMotor *M3 = AFMS.getMotor(3);
 Adafruit_DCMotor *M4 = AFMS.getMotor(4);
 Adafruit_DCMotor Motors[] = {*M1, *M2, *M3, *M4};
 
-//SENSOR CONFIGURATION
-float turnAxisDist = 65; // Perpendicular dist from front line sensors to rotation axis, forward positive, mm
-
 void setup() {
       //Initialize serial and wait for port to open:
   Serial.begin(9600);
@@ -45,7 +42,7 @@ void setup() {
     Serial.println("Could not find Motor Shield. Check wiring.");
     while (1);
   }
-  Serial.println("Motor Shield found, proceeding to access point setup.");
+  Serial.println("Motor Shield found, proceeding to acess point setup.");
 
   Serial.println("Begin access point setup.");
   // check for the WiFi module:
@@ -115,7 +112,8 @@ void loop() {
  }
 
   if (leftDetect == LOW && rightDetect == LOW) {
-    Log("Both sensors are low. Go straight");
+    Serial.println("Both sensors are now low. GO STRAIGHT.");
+    server.write("Both sensors are now low. GO STRAIGHT.\r\n");
     Motors[2].run(FORWARD);
     Motors[3].run(FORWARD);
     delay(100);
@@ -123,12 +121,8 @@ void loop() {
     Motors[3].run(RELEASE);
   }
   else if ((leftDetect == HIGH && rightDetect == LOW) or (leftDetect == HIGH && rightDetect == HIGH)) {
-     if (rightDetect == LOW) {
-        Log("Left is high, right is low. TURN LEFT.");
-     }
-    else {
-      Log("Left is high, right is high. TURN LEFT.");
-    }
+    Serial.println("Left is high, right is low. TURN LEFT.");
+    server.write("Left is high, right is low. TURN LEFT.\r\n");
     Motors[2].run(FORWARD);
     Motors[3].run(BACKWARD);
     delay(100);
@@ -136,7 +130,8 @@ void loop() {
     Motors[3].run(RELEASE);
   }
   else if (leftDetect == LOW && rightDetect == HIGH) {
-    Log("Left is low, right is high. TURN RIGHT.");
+    Serial.println("Left is low, right is high. TURN RIGHT.");
+    server.write("Left is low, right is high. TURN RIGHT.\r\n");
     Motors[2].run(BACKWARD);
     Motors[3].run(FORWARD);
     delay(100);
@@ -145,13 +140,31 @@ void loop() {
   }
 }
 
-void Log(const char message[]) {
-  char messageArr[100]; // To hold message
-  strcpy(messageArr, message);
-  strcat(messageArr, "\r\n");
-  Serial.println(message);
-  server.write(messageArr);
-} 
+/*void follow() {
+    leftDetect = digitalRead(leftPin);
+    rightDetect = digitalRead(rightPin);
+
+    if (leftDetect == LOW && rightDetect == LOW) {
+      Serial.println("Both sensors are now low. GO STRAIGHT.");
+      server.write("Both sensors are now low. GO STRAIGHT.");
+      forwardFlag = true;
+    }
+    else if (leftDetect == LOW && rightDetect == HIGH) {
+        Serial.println("Left is low, right is high. TURN RIGHT.");
+        server.write("Left is low, right is high. TURN RIGHT.");
+        rightFlag = true;
+    }
+    else if (leftDetect == HIGH && rightDetect == LOW) {
+        Serial.println("Left is high, right is low. TURN LEFT.");
+        server.write("Left is high, right is low. TURN LEFT.");
+        leftFlag = true;
+    }
+    else {
+        Serial.println("Both sensors are now high. CONFUSED, TURNING LEFT.");
+        server.write("Both sensors are now high. CONFUSED, TURNING LEFT.");
+        leftFlag = true;
+    }
+}*/
 
 void printWiFiStatus()
 {

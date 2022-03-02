@@ -152,6 +152,6 @@ void printWifiStatus() {
 
   // print your board's IP address:
   IPAddress ip = WiFi.localIP();
-  Serial.print("IP Adress: ");
+  Serial.print("IP Address: ");
   Serial.println(ip);
 }
