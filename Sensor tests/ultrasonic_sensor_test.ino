@@ -1,11 +1,16 @@
-// pulse generation of 10 microseconds
-// 60 ms between pulses
+/* 
+    Pulse generation of 10 microseconds
+    60 ms between pulses 
+*/
 
-int echo = 4; // set output pin
-int trigger = 3; // set input pin
+const int echoPin = 8; // set input pin
+const int triggerPin = 7; // set output pin
 
-int duration = 0;
-int inPin_stat = 0;
+unsigned long duration = 0;
+unsigned long timeout = 2500000;
+int val;
+int dist;
+int distance;
 
 void setup() {
     Serial.begin(9600);
@@ -16,24 +21,46 @@ void setup() {
 }
 
 void loop() {
-  
+
     Serial.println("Alive");
     pulsegeneration();
-    duration = pulseIn(echo, HIGH);
+    duration = pulseIn(echoPin, HIGH);
+    distance = distancecalculation();
     Serial.println("Pulse duration is");
     Serial.println(duration);
+    Serial.println("Distance in cm is");
+    Serial.println(distance);
 
 }
 
-void pulsegeneration() {  
+void pulsegeneration() {    
+  
     Serial.println("Sending pulse");
-    digitalWrite(trigger, HIGH);
-    Serial.println("pulse high");
-    Serial.println(digitalRead(trigger));
-    delayMicroseconds(15);
-    digitalWrite(trigger, LOW);
-    Serial.println("pulse low");
-    Serial.println(digitalRead(trigger));
     delay(60);
+    digitalWrite(triggerPin, LOW);
+    digitalWrite(triggerPin, HIGH);
+    //Serial.println("pulse high");
+    //Serial.println(digitalRead(trigger));
+    delayMicroseconds(15);
+    digitalWrite(triggerPin, LOW);
+    //Serial.println("pulse low");
+    //Serial.println(digitalRead(trigger));
+
+}
+
+void pintesting() {
+  
+    digitalWrite(echoPin, HIGH);
+    val = digitalRead(echoPin);
+    Serial.println(val);
+    delay(1000);
+
+}
+
+void distancecalculation() {
+    
+    // returns distance in cm
+    
+    dist = duration / 58
 
 }
