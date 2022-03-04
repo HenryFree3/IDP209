@@ -17,17 +17,32 @@
 class IDPLib {
     public:
         IDPLib(String ssid="TheBigBlockCarriers", String password="IDPL209BBC", int port=23, int baudRate=9600);
-        void wifiStatus();
         void debugStart(String ssid, String password);
         void motorStart(bool strictCheck=true);
-        void send(const char message[]);
+        void lineStart(int sensePinLeft, int sensePinRight);
+
+        void send(String message);
         void refresh();
+        void wifiStatus();
+
+        int lineRead();
 
         bool connected;
         bool skip;
         bool newOut;
         int APStatus;
         char out[32];
+
+        int sensePinLeft;
+        int sensePinRight;
+
+        enum lineStates {
+            NEITHER = 0, // Neither
+            RIGHT = 1, // Right
+            LEFT = 2 , // Left
+            BOTH = 3, // Both
+            ERR = 4 // Error
+        };
 
         WiFiServer server;
         WiFiClient client;

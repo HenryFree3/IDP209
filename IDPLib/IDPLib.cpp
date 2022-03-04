@@ -66,11 +66,11 @@ void IDPLib::motorStart(bool strictCheck) {
     shield = Adafruit_MotorShield(); // Initialise motorshield object
 
     // Set pointers for each motor, construct motor array
-    Adafruit_DCMotor *M1 = shield.getMotor(1);
-    Adafruit_DCMotor *M2 = shield.getMotor(2);
-    Adafruit_DCMotor *M3 = shield.getMotor(3);
-    Adafruit_DCMotor *M4 = shield.getMotor(4);
-    Adafruit_DCMotor motors[4] = {*M1, *M2, *M3, *M4};
+    motors[0] = *shield.getMotor(1);
+    motors[1] = *shield.getMotor(2);
+    motors[2] = *shield.getMotor(3);
+    motors[3] = *shield.getMotor(4);
+    //motors = {*M1, *M2, *M3, *M4};
 
     if (!shield.begin()) {
         if (strictCheck == true) {
@@ -89,13 +89,13 @@ void IDPLib::motorStart(bool strictCheck) {
     }
 }
 
-void IDPLib::send(const char message[]) {
+void IDPLib::send(String message) {
     // Send your data to serial (wired) and server (WiFi)
     Serial.println(message);
     // Just serial print if no server is available
     if (server.available()) {
-        char messageArr[64]; // Arbitrary char limit
-        strcpy(messageArr, message); // Need char array for server.write()
+        char messageArr[sizeof(message)/sizeof(message[0]) + 1]; // Char limit based on message size
+        strcpy(messageArr, message.c_str()); // Need char array for server.write()
         strcat(messageArr, "\r\n"); // Append newline
         server.write(messageArr);
   }
@@ -143,5 +143,31 @@ void IDPLib::refresh() {
     }
     else {
         newOut = false;
+    }
+}
+
+void IDPLib::lineStart(int sensePinLeft, int sensePinRight) {
+    pinMode(sensePinLeft, INPUT_PULLUP);
+    pinMode(sensePinRight, INPUT_PULLUP);
+}
+
+int IDPLib::lineRead() {
+    bool leftDetect = digitalRead(sensePinLeft);
+    bool rightDetect = digitalRead(sensePinRight);
+
+    if (!leftDetect && !rightDetect) {
+        return NEITHER; // Neither sensor high, can go straight
+    }
+    else if (!leftDetect && rightDetect) {
+        return RIGHT; // Right sensor high only, should turn right
+    }
+    else if (leftDetect && !rightDetect) {
+        return LEFT; // Left sensor high only, should turn left
+    }
+    else if (leftDetect && rightDetect) {
+        return BOTH; // Both sensors high, likely crossing a line
+    }
+    else {
+        return ERR; // Error state, invalid read
     }
 }
