@@ -114,29 +114,29 @@ void loop() {
   if (leftDetect == LOW && rightDetect == LOW) {
     Serial.println("Both sensors are now low. GO STRAIGHT.");
     server.write("Both sensors are now low. GO STRAIGHT.\r\n");
-    Motors[2].run(FORWARD);
-    Motors[3].run(FORWARD);
+    //Motors[2].run(FORWARD);
+    //Motors[3].run(FORWARD);
     delay(100);
-    Motors[2].run(RELEASE);
-    Motors[3].run(RELEASE);
+    //Motors[2].run(RELEASE);
+    //Motors[3].run(RELEASE);
   }
   else if ((leftDetect == HIGH && rightDetect == LOW) or (leftDetect == HIGH && rightDetect == HIGH)) {
     Serial.println("Left is high, right is low. TURN LEFT.");
     server.write("Left is high, right is low. TURN LEFT.\r\n");
-    Motors[2].run(FORWARD);
-    Motors[3].run(BACKWARD);
+    //Motors[2].run(FORWARD);
+    //Motors[3].run(BACKWARD);
     delay(100);
-    Motors[2].run(RELEASE);
-    Motors[3].run(RELEASE);
+    //Motors[2].run(RELEASE);
+    //Motors[3].run(RELEASE);
   }
   else if (leftDetect == LOW && rightDetect == HIGH) {
     Serial.println("Left is low, right is high. TURN RIGHT.");
     server.write("Left is low, right is high. TURN RIGHT.\r\n");
-    Motors[2].run(BACKWARD);
-    Motors[3].run(FORWARD);
+    //Motors[2].run(BACKWARD);
+    //Motors[3].run(FORWARD);
     delay(100);
-    Motors[2].run(RELEASE);
-    Motors[3].run(RELEASE);
+    //Motors[2].run(RELEASE);
+    //Motors[3].run(RELEASE);
   }
 }
 

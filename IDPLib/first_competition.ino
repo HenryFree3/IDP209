@@ -1,0 +1,4 @@
+/*
+    First competition integration
+*/
+

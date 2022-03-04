@@ -1,6 +1,7 @@
 /* 
     Line recovery test, using two sensors.
     Includes WiFi debugging.
+    *** INCOMPLETE ***
 */
 
 #include <SPI.h>
