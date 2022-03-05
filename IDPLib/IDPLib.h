@@ -20,12 +20,16 @@ class IDPLib {
         void debugStart(String ssid, String password);
         void motorStart(bool strictCheck=true);
         void lineStart(int sensePinLeft, int sensePinRight);
+        void encoderStart(int encoderPinLeft, int encoderPinRight, float pollRate = 50);
 
         void send(String message);
         void refresh();
         void wifiStatus();
 
         int lineRead();
+        void encoderHandler();
+
+        bool test;
 
         bool connected;
         bool skip;

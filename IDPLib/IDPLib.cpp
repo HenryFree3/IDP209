@@ -12,23 +12,9 @@ IDPLib::IDPLib(String ssid, String password, int port, int baudRate) : server(po
     connected = false;  
 }
 
-void IDPLib::wifiStatus() { 
-    send("SSID: ");
-    send(WiFi.SSID());
-    IPAddress ip = WiFi.localIP();
-    // Type conversion
-    String ip_str = String(ip[0]) + String(".") + 
-                    String(ip[1]) + String(".") + 
-                    String(ip[2]) + String(".") + 
-                    String(ip[3]);
-    char ip_char[16];
-    ip_str.toCharArray(ip_char, 16);
-    send("IP Address: ");
-    send(ip_char);
-    send("");
-}
 
 void IDPLib::debugStart(String ssid, String password) {
+    // Start remote WiFi capability
     delay(50);
 
     Serial.println("**************************");
@@ -62,7 +48,9 @@ void IDPLib::debugStart(String ssid, String password) {
     send("**************************\n");
 }
 
+
 void IDPLib::motorStart(bool strictCheck) {
+    // Check for and start motor shield
     shield = Adafruit_MotorShield(); // Initialise motorshield object
 
     // Set pointers for each motor, construct motor array
@@ -103,6 +91,7 @@ void IDPLib::send(String message) {
 
 void IDPLib::refresh() {
     // Checks on access point and client, receives new data from client
+
     if (APStatus != WiFi.status()) {
         APStatus = WiFi.status(); // Update if stale
         Serial.print("New AP status code: ");
@@ -146,12 +135,33 @@ void IDPLib::refresh() {
     }
 }
 
+void IDPLib::wifiStatus() { 
+    // Get detauks of hosted access point
+    send("SSID: ");
+    send(WiFi.SSID());
+    IPAddress ip = WiFi.localIP();
+    // Type conversion
+    String ip_str = String(ip[0]) + String(".") + 
+                    String(ip[1]) + String(".") + 
+                    String(ip[2]) + String(".") + 
+                    String(ip[3]);
+    char ip_char[16];
+    ip_str.toCharArray(ip_char, 16);
+    send("IP Address: ");
+    send(ip_char);
+    send("");
+}
+
+
 void IDPLib::lineStart(int sensePinLeft, int sensePinRight) {
+    // Simple set up - consider deleting this function
     pinMode(sensePinLeft, INPUT_PULLUP);
     pinMode(sensePinRight, INPUT_PULLUP);
 }
 
 int IDPLib::lineRead() {
+    // Poll the line sensors, return state
+    // describing orientation with respect to line
     bool leftDetect = digitalRead(sensePinLeft);
     bool rightDetect = digitalRead(sensePinRight);
 
@@ -170,4 +180,25 @@ int IDPLib::lineRead() {
     else {
         return ERR; // Error state, invalid read
     }
+}
+
+
+void IDPLib::encoderStart(int encoderPinLeft, int encoderPinRight, float pollRate) {
+    // Set up the encoders. Must run in setup().
+    // pollRate is the encoder polling frequency, recommend 50 Hz.
+    // Hardware timer interrupts are preferred to pin change interrupts to mitigate
+    // debouncing and simplify velocity calculations.
+
+    TCB0.CTRLB = TCB_CNTMODE_INT_gc; // Compare mode
+    TCB0.CCMP = 250000/pollRate; // Tick rate is 250 kHz, so 2500 is 1/100th, frequency of 100 Hz
+    TCB0.INTCTRL = TCB_CAPT_bm; // Enable interrupt
+    TCB0.CTRLA = TCB_CLKSEL_CLKTCA_gc | TCB_ENABLE_bm; // Use timer A as the clock, enable
+
+    // Set input pins
+    pinMode(encoderPinLeft, INPUT_PULLUP);
+    pinMode(encoderPinRight, INPUT_PULLUP);
+}
+
+void IDPLib::encoderHandler() {
+    test = true;
 }
