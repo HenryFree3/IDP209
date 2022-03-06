@@ -81,11 +81,13 @@ void IDPLib::send(String message) {
     // Send your data to serial (wired) and server (WiFi)
     Serial.println(message);
     // Just serial print if no server is available
-    if (server.available()) {
-        char messageArr[sizeof(message)/sizeof(message[0]) + 1]; // Char limit based on message size
-        strcpy(messageArr, message.c_str()); // Need char array for server.write()
-        strcat(messageArr, "\r\n"); // Append newline
-        server.write(messageArr);
+    //if (server.available()) {
+    if (connected) {
+        //Serial.println("Message length of : " + String(message.length()));
+        char messageArr[message.length()]; // Char limit based on message size
+        //strcpy(messageArr, message.c_str());
+        //strcat(messageArr, String("\r\n")); // Append newline for print
+        server.print(message);
   }
 }
 
