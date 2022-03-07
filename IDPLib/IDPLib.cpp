@@ -84,7 +84,7 @@ void IDPLib::send(String message) {
     //if (server.available()) {
     if (connected) {
         //Serial.println("Message length of : " + String(message.length()));
-        char messageArr[message.length()]; // Char limit based on message size
+        //char messageArr[message.length()]; // Char limit based on message size
         //strcpy(messageArr, message.c_str());
         //strcat(messageArr, String("\r\n")); // Append newline for print
         server.print(message);
