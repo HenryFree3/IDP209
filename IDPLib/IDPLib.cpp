@@ -15,16 +15,11 @@ IDPLib::IDPLib(String ssid, String password, int port, int baudRate) : server(po
 
 void IDPLib::debugStart(String ssid, String password) {
     // Start remote WiFi capability
-    delay(50);
-
-    Serial.println("**************************");
     Serial.println("*** START REMOTE DEBUG ***");
-    Serial.println("**************************\n");
-
-    Serial.println("Begin access point setup.\n");
+    Serial.println("Begin access point setup.");
     // Check for WiFi module
     if (WiFi.status() == WL_NO_MODULE) {
-        Serial.println("Communication with WiFi module failed! Fix & reset.\n");
+        Serial.println("Communication with WiFi module failed! Fix & reset.");
         while (true) {
             delay(10); // Hang
         }
@@ -33,19 +28,15 @@ void IDPLib::debugStart(String ssid, String password) {
     APStatus = WiFi.beginAP(ssid.c_str(), password.c_str());
     // Check AP is running
     if (APStatus != WL_AP_LISTENING) {
-        Serial.println("Creating access point failed. Fix & reset.\n");
+        Serial.println("Creating access point failed. Fix & reset.");
         while (true) {
             delay(10); // Hang
         }
     }
-    
     // Begin WiFi server
     server.begin();
     wifiStatus();
-
-    send("**************************");
-    send("*** REMOTE DEBUG READY ***");
-    send("**************************\n");
+    Serial.println("*** REMOTE DEBUG READY ***");
 }
 
 
@@ -184,6 +175,40 @@ int IDPLib::lineRead() {
     }
 }
 
+void IDPLib::colourStart(int colourSensePin) {
+    colourPin = colourSensePin;
+    pinMode(colourPin, INPUT_PULLUP);
+}
+
+void IDPLib::irStart(int irSensePin) {
+    irPin = irSensePin;
+    pinMode(irPin, INPUT_PULLUP);
+}
+
+float IDPLib::irRead() {
+    // Take a number of IR measurements, using the average reading return the distance to object.
+    const int measurements = 1000;
+    float dist;
+    int reading;
+    uint32_t cumReading;
+
+    for (int count = 0; count < measurements; count++) {
+        reading = analogRead(irPin);
+        cumReading += reading;
+    }
+    reading = (cumReading/measurements);
+    cumReading = 0;
+    return 30554*pow(reading, -0.90943); // Decay relationship, constants found from calibration
+}
+
+int IDPLib::colourRead() {
+    if (digitalRead(colourPin) == RED) {
+        return RED;
+    }
+    else {
+        return BLUE;
+    } 
+}
 
 void IDPLib::encoderStart(int encoderPinLeft, int encoderPinRight, float pollRate) {
     // Set up the encoders. Must run in setup().
@@ -201,6 +226,7 @@ void IDPLib::encoderStart(int encoderPinLeft, int encoderPinRight, float pollRat
     pinMode(encoderPinRight, INPUT_PULLUP);
 }
 
-void IDPLib::encoderHandler() {
-    test = true;
+void IDPLib::goStraight(float dist) {
+    // Drive as straight as possible for a set distance.
+
 }

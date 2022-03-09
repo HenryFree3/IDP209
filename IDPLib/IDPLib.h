@@ -20,18 +20,25 @@ class IDPLib {
         void debugStart(String ssid, String password);
         void motorStart(bool strictCheck=true);
         void lineStart(int sensePinLeft, int sensePinRight);
+        void irStart(int irPin);
         void encoderStart(int encoderPinLeft, int encoderPinRight, float pollRate = 50);
+        void colourStart(int colourSensePin);
+        void irStart(int irSensePin);
+        float irRead();
+        int colourRead();
 
         void send(String message);
         void refresh();
         void wifiStatus();
 
         int lineRead();
-        void encoderHandler();
+        
+        void goStraight(float dist);
 
         bool test;
 
         bool connected;
+        bool startFlag = false;
         bool skip;
         bool newOut;
         int APStatus;
@@ -39,6 +46,8 @@ class IDPLib {
 
         int sensePinLeft;
         int sensePinRight;
+        int irPin;
+        int colourPin;
 
         enum lineStates {
             NEITHER = 0, // Neither
@@ -48,12 +57,26 @@ class IDPLib {
             ERR = 4 // Error
         };
 
+        enum colours {
+            BLUE = 0,
+            RED = 1
+        };
+
         WiFiServer server;
         WiFiClient client;
         Adafruit_MotorShield shield;
         Adafruit_DCMotor motors[4];
 
     private:
+};
+
+class PID {
+    public:
+        PID();
+        float kp;
+        float ki;
+        float kd;
+
 };
 
 #endif
