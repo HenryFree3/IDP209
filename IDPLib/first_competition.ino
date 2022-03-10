@@ -70,6 +70,9 @@ void setup() {
     pinMode(ledPin, OUTPUT);
 }
 void loop () {
+    // Listen for commands from python here
+    // send telemetry at regular intervals (measure loop time), if stage > 0
+
     switch (stage) {     
         case 0:
             // In startup
@@ -88,57 +91,80 @@ void loop () {
         case 1: 
         // Connection received, start receiving telemetry data, wait for go signal
             int waits = 1;
-            Serial.print("CASE 1: CLIENT CONNECTED, STARTING TELEMETRY STREAM AT ");
-            Serial.print(updateRate);
-            Serial.println(" Hz.");
+            IDP.send("CASE 1: CLIENT CONNECTED, STARTING TELEMETRY STREAM AT ");
+            IDP.send((String) updateRate);
+            IDP.send(" Hz.");
             while (!IDP.startFlag) {
+                if (IDP.newOut && IDP.out == "some command from python to start") {
+
+                }
                 delay(5000);
-                Serial.print("AWAITING START COMMAND... (");
-                Serial.print(waits);
-                Serial.println(")");
+                IDP.send("AWAITING START COMMAND... (");
+                IDP.send((String) waits);
+                IDP.send(")");
                 waits++;
             }
+            stage = 2;
             break;
 
         case 2: 
-        // Go signal received, drive as straight as possible and count double lines crossed.
+            // Go signal received, drive as straight as possible and count double lines crossed.
             // Check both line sensors are starting low.
-            // Reset wheel encoder variables to zero. (or just take account of them?)
+            // Reset wheel encoder variables to zero. (or better to just take note of the initial values?)
+                // In either case the velocities / poll count arrays should be zeroed, might make a function for this
+            
+            // Start driving forwards, implement PD control on wheels
+            // while driving, check for line sensor changes - if one goes high, wait another (X) rotations of the wheels
+                // if they both go high within this many rotations, keep going straight and increment double line count
+                // else, we have just drifted off the line: increase the wheel speed on one side - Reset encoder difference?
 
-        // Go forward, line follow, PID to minimise error between 2 rotary encoders, count double lines
+            // when double line count reaches 3
+                // case = 3
+
         case 3: 
+            // Drive a hardcoded distance to the search point using encoders and line following
+            // consider using encoders and line sensors to try and precisely align on the centre of the line?
+            // case = 4
 
-        // Double line count reaches 3, slow down, activate search after a hardcoded distance
         case 4: 
+            // Enter search mode
+            // Sweep out an arc by rotating some fixed number of degrees on the spot, reading the IR sensor, repeating
+            // When the IR sensor reading changes dramatically
+                //perform a refind scan around the block
+                //if the measured distance and angle through which the object are detected are consistent with the expected block size
+                    // case = 5
 
-        // Search mode
         case 5: 
+            // Determine required rotation and distance to block
+            // Perform the rotation, then drive forwards to expected 15 cm distance.
+            // Reacquire block
+            // if reacquire fails
+                // Reverse the movements just performed, reacquire line and go again from case 4
 
-        // Block found, decide how to get to block (might be able to combine cases 6 and 7)
+            // else perform fine alignment with colour sensor
         case 6: 
+            // Perform colour detection, store the result for later so we know where we need to go
+            // Fine alignment with grabber
 
-        // Get as close as possible to block using line following, approach using dead reckoning
         case 7: 
+            // Activate block retrieval mechanism
+            // if block retrieval fails:
+                // Backtrack all movements to case 4, scan again
 
-        // Block classification
         case 8: 
+            // Backtrack to line
+            // need to modify case 2 code to be reusable at this point - follow line to delivery area
 
-        // Activate block retrieval mechanism, check line sensors; if it fails, backtrack to case 5
         case 9: 
+            // using knowledge of block colour, any previously retrieved blocks, navigate to correct drop area
 
-        // Return to line using same route, retrieve data from case 7 to decide on delivery area
         case 10: 
+            // Align with target, deliver block 
 
-        // Go to delivery area
         case 11: 
+            // Return to line, repeat cases 4 to 11 until all 4 blocks done
 
-        // Align with target, deliver block
-        case 12:  
-
-        // Return to line, repeat cases 4 to 11 until all 4 blocks done
-        case 13: 
-
-        // Return to homebase, potentially implement timer such that robot knows when time is running out and will return to homebase, aborting remaining blocks
-        case 14: 
+        case 12: 
+            // Return to homebase, potentially implement timer such that robot knows when time is running out and will return to homebase, aborting remaining blocks
     }
 }
