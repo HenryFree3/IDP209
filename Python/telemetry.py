@@ -1,5 +1,7 @@
 from multiprocessing.sharedctypes import Value
 from matplotlib.gridspec import GridSpec
+from matplotlib.widgets import Button
+from matplotlib.widgets import TextBox
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 from itertools import count
@@ -11,8 +13,17 @@ import time
 Receives, parses and plots the state vector sent by the robot in real time.
 """
 
+
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Websocket initialisation
 blit = True
 stableTime = 2 # Time to wait before starting plotting
+
+def startCallback():
+    
+    # Get user selected case, start co-ordinates from Matplotlib GUI
+    # Send through socket
+    s.send(b"Command Message")
 
 def getStateVector():
     """
@@ -113,6 +124,11 @@ ax4.imshow(img, extent=(0, 2400, 0, 2400))
 ax4.axis("off")
 line4 = ax4.plot(xVals, yVals, color=routeColour, lw=lineWidth, linestyle="dashed")[0]
 
+# Command button
+startAxes = plt.axes([0.03, 0.15, 0.02, 0.015])
+buttonStart = Button(startAxes, "Send")
+#buttonStart.on_clicked(startCallback())
+
 # Final plot configuration
 fig.canvas.draw()
 plt.grid(False)
@@ -140,10 +156,9 @@ ax1.axis("on")
 ax2.axis("on")
 ax3.axis("on")
 
-# Socket connection setup
+# Websocket final setup
 HOST = "192.168.4.1" # Robot IP
 PORT = 23 # Telnet port
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Websocket
 s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) # Faster TCP
 s.settimeout(5) # Timeout for connection, receiving data
 s.connect((HOST, PORT))
