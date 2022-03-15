@@ -234,7 +234,7 @@ void run() {
 
         case 2:
         open_grabber();
-        go_forward();
+        go_forward(); // time pending
         stage++;
 
         case 3:
@@ -242,14 +242,15 @@ void run() {
         stage++;
 
         case 4:
-        go_backward();
+        go_backward(); // time pending
         stage++;
 
         case 5:
         stop();
+        turn_180();
 
 
-        /*case 5:
+        case 6:
         if (cross == 1) {
             line_following();
         }
@@ -257,18 +258,22 @@ void run() {
         else if (cross == 2) {
             stop();
             if (colour == 1) {
-                turn_left(); //time pending
-                go_forward(); //time pending
-                turn_left(); //time pending
-                go_forward(); //time pending
+                turn_left(90); // time pending
+                go_forward(); // time pending
+                turn_right(90); // time pending
+                go_forward(); // time pending
+                turn_left(90); // time pending
+                go_forward(); // time pending
                 stage++;
             }
 
             else if (colour == 0) {
-                turn_right(); //time pending
-                go_forward(); //time pending
-                turn_right(); //time pending
-                go_forward(); //time pending
+                turn_right(90); // time pending
+                go_forward(); // time pending
+                turn_left(90); // time pending
+                go_forward(); // time pending
+                turn_right(); // time pending
+                go_forward(); // time pending
                 stage++;
             }
         }
@@ -291,20 +296,27 @@ void run() {
 
         case 10:
         if (colour == 1) {
-                go_backward(); //time pending
-                turn_right(); //time pending
-                turn_left(); //time pending
-                go_forward(); //time pending
+                go_backward(); // time pending
+                turn_right(90); // time pending
+                go_backward(); // time pending
+                turn_left(90); // time pending
+                go_backward(); // time pending
+                turn_right(90); // time pending
                 stage++;
             }
 
             else if (colour == 0) {
-                turn_right(); //time pending
-                go_forward(); //time pending
-                turn_right(); //time pending
-                go_forward(); //time pending
+                go_backward(); // time pending
+                turn_left(90); // time pending
+                go_backward(); // time pending
+                turn_right(90); // time pending
+                go_backward(); // time pending
+                turn_left(90); // time pending
                 stage++;
-            }*/
+            }
+
+        case 11:
+        go_forward(); // time pending, go home
 
 
 
