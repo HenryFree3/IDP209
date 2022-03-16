@@ -20,7 +20,6 @@ blit = True
 stableTime = 2 # Time to wait before starting plotting
 
 def startCallback():
-    
     # Get user selected case, start co-ordinates from Matplotlib GUI
     # Send through socket
     s.send(b"Command Message")
@@ -35,7 +34,10 @@ def getStateVector():
         #time_postreceive = time.time()
         #print(f"Received in {time_postreceive-time_prereceive:.4f} s") # Used for loop performance analysis
         try:
-            dataSplit = data.split(" ") # Each part of the state vector is space delimited
+            dataSplit = data.split(" ")
+            stateVector = dataSplit
+            print(stateVector)
+            """dataSplit = data.split(" ") # Each part of the state vector is space delimited
             stateVector = {
                 # Distinct values within one part of the state vector are comma delimited
                 "stateID": dataSplit[1].split(",")[0], # State vector count
@@ -44,7 +46,7 @@ def getStateVector():
                 "rotation": dataSplit[3], # Rotation in degrees
                 "motorSpeeds": dataSplit[4].split(","), # List of left, right motor speed settings, 0-255 
                 "motorPIDs": dataSplit[5].split(",") # List of P, I, D values
-            }
+            }"""
             return stateVector
         except IndexError:
             print("Bad index into state vector") # Occurs when "data" cannot be interpreted as a valid robot state vector
@@ -125,8 +127,8 @@ ax4.axis("off")
 line4 = ax4.plot(xVals, yVals, color=routeColour, lw=lineWidth, linestyle="dashed")[0]
 
 # Command button
-startAxes = plt.axes([0.03, 0.15, 0.02, 0.015])
-buttonStart = Button(startAxes, "Send")
+#startAxes = plt.axes([0.03, 0.15, 0.02, 0.015])
+#buttonStart = Button(startAxes, "Send")
 #buttonStart.on_clicked(startCallback())
 
 # Final plot configuration
@@ -158,16 +160,16 @@ ax3.axis("on")
 
 # Websocket final setup
 HOST = "192.168.4.1" # Robot IP
-PORT = 23 # Telnet port
+PORT = 22 # Telemetry port
 s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) # Faster TCP
-s.settimeout(5) # Timeout for connection, receiving data
+s.settimeout(10) # Timeout for connection and receiving data, seconds
 s.connect((HOST, PORT))
 s.send(b"Let me in") # The Arduino can't seem to recognise the connection until a client sends some bytes
 
 ack = s.recv(64).decode("ASCII")
-while ack != "New client connection": # Wait for connection
+while ack != "ACK TELEMETRY CONNECTION": # Wait for connection
     ack = s.recv(64).decode("ASCII")
-print("Connected to server.")
+print("Connected to telemetry server.")
 time.sleep(0.5)
 
 time_end = time.time()
