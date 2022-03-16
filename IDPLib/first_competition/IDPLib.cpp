@@ -306,6 +306,11 @@ void IDPLib::encoderStart(int encoderPinLeft, int encoderPinRight, float pollRat
     pinMode(encoderPinRight, INPUT);
 }
 
+void IDPLib::rotate(float angle, float wheelSeparation, float wheelDiameter, bool left) {
+  
+  
+}
+
 void IDPLib::goStraight(float dist) {
     // Drive as straight as possible for a set distance.
 

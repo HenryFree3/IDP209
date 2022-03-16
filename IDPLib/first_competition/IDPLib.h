@@ -40,6 +40,7 @@ class IDPLib {
         int lineRead();
         
         void goStraight(float dist);
+        void rotate(float angle, float wheelSeparation, float wheelDiameter, bool left);
 
         bool test;
 
