@@ -30,13 +30,14 @@ int i = 0;
 int j = 0;
 int k = 0;
 int l = 0;
+int revsL = 0; int revsR = 0;
 
 bool encoderLeftRead;
 bool encoderLeftOld;
 bool encoderRightRead;
 bool encoderRightOld;
 
-int leftEncoderPin = 5;
+int leftEncoderPin = 13;
 int rightEncoderPin = 7;
 
 float pollRate = 10000.0;
@@ -66,13 +67,24 @@ void setup() {
   encoderLeftRead = encoderLeftOld = digitalRead(leftEncoderPin);
   encoderRightRead = encoderRightOld = digitalRead(rightEncoderPin);
   
-  IDP.motors[3].run(FORWARD);
-  IDP.motors[3].setSpeed(220);
-  IDP.motors[2].run(FORWARD);
-  IDP.motors[2].setSpeed(220);
+  IDP.motors[1].run(FORWARD);
+  IDP.motors[1].setSpeed(220);
+  IDP.motors[0].run(FORWARD);
+  IDP.motors[0].setSpeed(220);
 }
 
 void loop() {
+  encoderLeftRead = digitalRead(leftEncoderPin);
+  encoderRightRead = digitalRead(rightEncoderPin);
+  if (encoderLeftRead != encoderLeftOld) {
+    IDP.test = true;
+  }
+  if (encoderRightRead != encoderRightOld) {
+    IDP.test = true;
+  }
+  
+
+  
   if (IDP.test) {
     i++;
     k++;
@@ -95,11 +107,14 @@ void loop() {
     // Determine average time between polls from last readings of left wheel.
     // Useful for calibrating motor speed output against speed control input.
         j = 0;
+        revsL = revsL + 1;
         for (int m = 0; m < (sizeof(countsLeft)/sizeof(countsLeft)[0]); m++) {
           sumLeft = sumLeft + countsLeft[m];
         }
         Serial.print("Avg. polls per slot on last left wheel revolution was: ");
-        Serial.println(float(sumLeft/(sizeof(countsLeft)/sizeof(countsLeft)[0])));
+        Serial.print(float(sumLeft/(sizeof(countsLeft)/sizeof(countsLeft)[0])));
+        Serial.print(", total revolutions: ");
+        Serial.println(revsL);
         sumLeft = 0;
       }
       
@@ -107,11 +122,14 @@ void loop() {
     // Determine average time between polls from last readings of right wheel.
     // Useful for calibrating motor speed output against speed control input.
         l = 0;
+        revsR = revsR + 1;
         for (int n = 0; n < (sizeof(countsRight)/sizeof(countsRight)[0]); n++) {
           sumRight = sumRight + countsRight[n];
         }
         Serial.print("Avg. polls per slot on last right wheel revolution was: ");
-        Serial.println(float(sumRight/(sizeof(countsRight)/sizeof(countsRight)[0])));
+        Serial.print(float(sumRight/(sizeof(countsRight)/sizeof(countsRight)[0])));
+        Serial.print(", total revolutions: ");
+        Serial.println(revsR);
         sumRight = 0;
       }
 }

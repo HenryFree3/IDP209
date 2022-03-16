@@ -2,24 +2,28 @@
 #include "SPI.h"
 #include "WiFiNINA.h"
 #include "Adafruit_MotorShield.h"
+#include "Servo.h"
 #include "IDPLib.h"
 
-IDPLib::IDPLib(String ssid, String password, int port, int baudRate) : server(port) {
+IDPLib::IDPLib(String ssid, String password, int port1, int port2, int baudRate) : server(port1), telemServer(port2) {
     // Constructor for IDPLib class
+    telemPort = port2;
     Serial.begin(baudRate); // Ensure serial is running
     APStatus = WL_IDLE_STATUS; // AP status prior to start
     WiFiServer server(23); // Use default telnet port
-    connected = false;  
+
+    grabServo.attach(10); // Adafruit motorshield servo pins
+    liftServo.attach(9);
 }
 
 
 void IDPLib::debugStart(String ssid, String password) {
     // Start remote WiFi capability
-    Serial.println("*** START REMOTE DEBUG ***");
-    Serial.println("Begin access point setup.");
+    send("*** START REMOTE DEBUG ***\n\n");
+    send("Begin access point setup.\n");
     // Check for WiFi module
     if (WiFi.status() == WL_NO_MODULE) {
-        Serial.println("Communication with WiFi module failed! Fix & reset.");
+        send("Communication with WiFi module failed! Fix & reset.\n");
         while (true) {
             delay(10); // Hang
         }
@@ -28,7 +32,7 @@ void IDPLib::debugStart(String ssid, String password) {
     APStatus = WiFi.beginAP(ssid.c_str(), password.c_str());
     // Check AP is running
     if (APStatus != WL_AP_LISTENING) {
-        Serial.println("Creating access point failed. Fix & reset.");
+        send("Creating access point failed. Fix & reset.\n");
         while (true) {
             delay(10); // Hang
         }
@@ -36,7 +40,30 @@ void IDPLib::debugStart(String ssid, String password) {
     // Begin WiFi server
     server.begin();
     wifiStatus();
-    Serial.println("*** REMOTE DEBUG READY ***");
+    send("\n*** REMOTE DEBUG READY ***\n\n");
+}
+
+void IDPLib::telemStart() {
+    // Start up secondary telemetry server
+    telemServer.begin();
+    telemActive = true;
+    send("Telemetry server running on port "+ (String) telemPort + ".\n");
+}
+
+void IDPLib::telemUpdate() {
+    if (telemActive && telemConnected) {
+        // Construct state vector
+        stateID++;
+        telemServer.print(telemPre + " " + (String) stateID + " " + (String) lastPeriod + " "
+
+        + telemPost);
+    }
+    else if (!telemConnected) {
+        send("A telemetry update was scheduled, but there is no connection to receive it.\n");
+    }
+    else {
+        send("Telemetry update failed: telemetry server not started.\n");
+    }
 }
 
 
@@ -70,7 +97,7 @@ void IDPLib::motorStart(bool strictCheck) {
 
 void IDPLib::send(String message) {
     // Send your data to serial (wired) and server (WiFi)
-    Serial.println(message);
+    Serial.print(message);
     // Just serial print if no server is available
     //if (server.available()) {
     if (connected) {
@@ -83,12 +110,11 @@ void IDPLib::send(String message) {
 }
 
 void IDPLib::refresh() {
-    // Checks on access point and client, receives new data from client
-
+    // Checks on access point and clients, receives new data from clients
     if (APStatus != WiFi.status()) {
         APStatus = WiFi.status(); // Update if stale
-        Serial.print("New AP status code: ");
-        Serial.println(APStatus);
+        send("New AP status code: ");
+        send((String) APStatus + "\n");
     }
 
     // Only check for a client if there is not one connected already
@@ -98,14 +124,30 @@ void IDPLib::refresh() {
             skip = true; // Flag to skip reading first bytes
             client = server.available();
             client.flush();
-            send("New client connection");
+            send("New client connection\n");
         }
     }
     else if (client.status() == 0) {
         // If client connection is no longer "established":
-        send("Client lost");
+        send("Client lost\n");
         client.stop();
         connected = false;
+    }
+
+    if (telemConnected == false) {
+        if (telemServer.available()) {
+            telemConnected = true;
+            telemClient = telemServer.available();
+            telemServer.write("ACK TELEMETRY CONNECTION"); // Acknowledge the client
+            telemClient.flush();
+            telemClient.readString();
+            send("New telemetry connection\n");
+        }
+    }
+    else if (telemClient.status() == 0 ) {
+        send("Telemetry client lost\n");
+        telemClient.stop();
+        telemConnected = false;
     }
 
     if (client.available() > 0) {
@@ -129,9 +171,9 @@ void IDPLib::refresh() {
 }
 
 void IDPLib::wifiStatus() { 
-    // Get detauks of hosted access point
-    send("SSID: ");
-    send(WiFi.SSID());
+    // Get details of hosted access point
+    Serial.print((String) "SSID: ");
+    Serial.println((String) WiFi.SSID());
     IPAddress ip = WiFi.localIP();
     // Type conversion
     String ip_str = String(ip[0]) + String(".") + 
@@ -140,16 +182,19 @@ void IDPLib::wifiStatus() {
                     String(ip[3]);
     char ip_char[16];
     ip_str.toCharArray(ip_char, 16);
-    send("IP Address: ");
-    send(ip_char);
-    send("");
+    Serial.print("IP Address: ");
+    Serial.print(ip_char);
+    Serial.println("");
 }
 
 
-void IDPLib::lineStart(int sensePinLeft, int sensePinRight) {
+void IDPLib::lineStart(int sensePinLeftLine, int sensePinRightLine) {
     // Simple set up - consider deleting this function
-    pinMode(sensePinLeft, INPUT_PULLUP);
-    pinMode(sensePinRight, INPUT_PULLUP);
+    sensePinLeft = sensePinLeftLine;
+    sensePinRight = sensePinRightLine;
+
+    pinMode(sensePinLeft, INPUT);
+    pinMode(sensePinRight, INPUT);
 }
 
 int IDPLib::lineRead() {
@@ -174,6 +219,41 @@ int IDPLib::lineRead() {
         return ERR; // Error state, invalid read
     }
 }
+
+void IDPLib::liftRaise(int liftAng1, int liftAng2) {
+    int pos;
+    for (pos = liftAng2; pos >= liftAng1; pos -= 1) {
+        liftServo.write(pos);
+        delay(5);
+    }
+}
+
+void IDPLib::liftLower(int liftAng1, int liftAng2) {
+    int pos;
+    for (pos = liftAng1; pos <= liftAng2; pos += 1) {
+        liftServo.write(pos);
+        delay(5);
+    }
+}
+
+void IDPLib::grabberOpen(int grabAng1, int grabAng2) {
+    int pos;
+
+    for (pos = grabAng2; pos >= grabAng1; pos -= 1) {
+        grabServo.write(pos);
+        delay(5);
+    }
+}
+
+void IDPLib::grabberClose(int grabAng1, int grabAng2) {
+    int pos;
+
+    for (pos = grabAng1; pos <= grabAng2; pos += 1) {
+        grabServo.write(pos);
+        delay(5);
+    }
+}
+
 
 void IDPLib::colourStart(int colourSensePin) {
     colourPin = colourSensePin;
@@ -202,10 +282,10 @@ float IDPLib::irRead() {
 }
 
 int IDPLib::colourRead() {
-    if (digitalRead(colourPin) == RED) {
-        return RED;
+    if (digitalRead(colourPin) == RED) { // Red
+        return BLUE;
     }
-    else {
+    else { // Blue
         return BLUE;
     } 
 }
@@ -222,8 +302,8 @@ void IDPLib::encoderStart(int encoderPinLeft, int encoderPinRight, float pollRat
     TCB0.CTRLA = TCB_CLKSEL_CLKTCA_gc | TCB_ENABLE_bm; // Use timer A as the clock, enable
 
     // Set input pins
-    pinMode(encoderPinLeft, INPUT_PULLUP);
-    pinMode(encoderPinRight, INPUT_PULLUP);
+    pinMode(encoderPinLeft, INPUT);
+    pinMode(encoderPinRight, INPUT);
 }
 
 void IDPLib::goStraight(float dist) {

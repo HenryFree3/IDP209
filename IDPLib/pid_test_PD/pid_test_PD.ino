@@ -24,8 +24,8 @@ bool encoderLeftOld;
 bool encoderRightRead;
 bool encoderRightOld;
 
-int leftEncoderPin = 5;
-int rightEncoderPin = 6;
+int leftEncoderPin = 13;
+int rightEncoderPin = 7;
 
 int pollRate = 10000; // Interrupt rate
 
@@ -36,7 +36,7 @@ bool updated = false;
 IDPLib IDP;
 
 // For speed constraint
-int minSpeed = 60; // Motors don't turn consistently below this
+int minSpeed = 80; // Motors don't turn consistently below this
 int maxSpeed = 255; // 8 bit maximum
 
 int baseSpeed = 230;
@@ -123,10 +123,11 @@ void setup() {
   encoderLeftRead = encoderLeftOld = digitalRead(leftEncoderPin);
   encoderRightRead = encoderRightOld = digitalRead(rightEncoderPin);
   
-  IDP.motors[3].run(FORWARD);
-  IDP.motors[3].setSpeed(baseSpeed);
-  IDP.motors[2].run(FORWARD);
-  IDP.motors[2].setSpeed(baseSpeed);
+  IDP.motors[0].run(FORWARD);
+  IDP.motors[0].setSpeed(baseSpeed);
+  IDP.motors[1].run(FORWARD);
+  IDP.motors[1].setSpeed(baseSpeed);
+  delay(1000);
 }
 
 int countErr = 0;
@@ -135,8 +136,8 @@ float rightVel;
 
 float dTerm;
 float pTerm;
-float kd = 0.25;
-float kp = 1;
+float kd = 0.7;
+float kp = 2.5;
 float offset;
 float leftTarget;
 float rightTarget;
@@ -173,6 +174,6 @@ void loop() {
   rightTarget = baseSpeed + offset;
   leftSpeed = round(constrain(leftTarget, 60, 255));
   rightSpeed = round(constrain(rightTarget, 60, 255));
-  IDP.motors[2].setSpeed(leftSpeed);
-  IDP.motors[3].setSpeed(rightSpeed);
+  IDP.motors[0].setSpeed(leftSpeed);
+  IDP.motors[1].setSpeed(rightSpeed);
 }

@@ -1,6 +1,6 @@
 // IR sensor test
 
-const int pin = A0;
+const int pin = A3;
 int voltage;
 
 void setup () {
